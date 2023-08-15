@@ -1,5 +1,5 @@
 const config = {
-  numThreads: 2,
+  numThreads: 1,
   RecaptchaV2TaskKey: "",
 };
 
