@@ -1,6 +1,8 @@
 const { random } = require("user-agents");
 const axios = require("axios");
 const { SocksProxyAgent } = require("socks-proxy-agent");
+const { HttpsProxyAgent } = require("https-proxy-agent");
+
 const config = require("../inputs/config.ts");
 const { RecaptchaV2Task } = require("node-capmonster");
 const verifyEmail = require("./verifyEmail.ts");
@@ -15,10 +17,12 @@ async function sendConfirmation(email, proxy) {
     Origin: "https://www.nansen.ai",
     Referer: "https://www.nansen.ai/",
   };
-  const agent = new SocksProxyAgent(`socks5://${proxy}`);
   const session = axios.create({
     headers: headers,
-    httpsAgent: agent,
+    httpsAgent:
+      config.proxyType === "http"
+        ? new HttpsProxyAgent(`http://${proxy}`)
+        : new SocksProxyAgent(`socks5://${proxy}`),
   });
   const getResponse = await session.get("https://www.nansen.ai/early-access");
   const $ = cheerio.load(getResponse.data);
@@ -40,12 +44,12 @@ async function sendConfirmation(email, proxy) {
   };
 
   const response = await session.post(
-    "https://getlaunchlist.com/s/yeywGr",
+    `https://getlaunchlist.com/s/yeywGr?ref=${config.ref}`,
     data
   );
 
   console.log("confirmation has been sent");
-  await delay(15000);
+  await delay(config.customDelay);
 
   verifyEmail(email, proxy);
 }

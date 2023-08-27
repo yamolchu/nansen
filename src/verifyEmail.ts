@@ -5,6 +5,9 @@ const cheerio = require("cheerio");
 const { random } = require("user-agents");
 const axios = require("axios");
 const { SocksProxyAgent } = require("socks-proxy-agent");
+const { HttpsProxyAgent } = require("https-proxy-agent");
+const config = require("../inputs/config.ts");
+
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const csvWriter = createCsvWriter({
@@ -24,7 +27,10 @@ function verifyEmail(email, proxy) {
   const agent = new SocksProxyAgent(`socks5://${proxy}`);
   const session = axios.create({
     headers: headers,
-    httpsAgent: agent,
+    httpsAgent:
+      config.proxyType === "http"
+        ? new HttpsProxyAgent(`http://${proxy}`)
+        : new SocksProxyAgent(`socks5://${proxy}`),
   });
   const imapConfig = {
     user: email.email,
